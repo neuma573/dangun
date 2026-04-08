@@ -15,6 +15,30 @@ import { showToast }       from './toast.js';
 // Food state lives here so modal.js and food.js can share it
 export const foodState = { kiosk: null, table: null, delivery: null };
 
+// ── Change detection ──────────────────────────────────────────────
+
+let _origValues = {};
+
+function _captureOriginals() {
+  _origValues = {};
+  FIDS.forEach(fid => {
+    const el = document.getElementById(fid);
+    _origValues[fid] = el ? el.value : '';
+  });
+  // f-biztype is a hidden field not in FIDS
+  const bt = document.getElementById('f-biztype');
+  _origValues['f-biztype'] = bt ? bt.value : 'sole';
+}
+
+function _hasChanges() {
+  const bt = document.getElementById('f-biztype');
+  if (bt && bt.value !== (_origValues['f-biztype'] ?? 'sole')) return true;
+  return FIDS.some(fid => {
+    const el = document.getElementById(fid);
+    return el && el.value !== (_origValues[fid] ?? '');
+  });
+}
+
 // ── setBizType ────────────────────────────────────────────────────
 
 export function setBizType(type) {
@@ -83,17 +107,13 @@ export function openModal(id) {
     checkFoodIndustry();
     setBizType('sole');
   }
+  _captureOriginals();
 }
 
 // ── closeModal ────────────────────────────────────────────────────
 
 export function closeModal() {
-  const hasInput = FIDS.some(fid => {
-    const el = document.getElementById(fid);
-    if (!el) return false;
-    return el.value && el.value !== '0' && el.value !== 'sole';
-  });
-  if (hasInput) {
+  if (_hasChanges()) {
     document.getElementById('closeConfirm').classList.add('open');
   } else {
     forceCloseModal();
@@ -104,6 +124,7 @@ export function forceCloseModal() {
   document.getElementById('closeConfirm').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
   state.editId = null;
+  _origValues = {};
 }
 
 export function cancelClose() {

@@ -1,0 +1,18 @@
+name: Supabase Keep-alive
+
+on:
+  schedule:
+    - cron: '0 9 */3 * *'  # every 3 days at 09:00 UTC (well under the 7-day pause limit)
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          curl -sf \
+            -H "apikey: ${{ secrets.VITE_SUPABASE_ANON_KEY }}" \
+            "${{ secrets.VITE_SUPABASE_URL }}/rest/v1/" \
+            && echo "Supabase is active" \
+            || echo "Ping failed — project may be paused"

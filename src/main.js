@@ -151,6 +151,47 @@ document.getElementById('routeOverlay')?.addEventListener('click', e => {
 // Modal overlay blocks click-through (closes only via X button)
 document.getElementById('overlay')?.addEventListener('click', e => e.stopPropagation());
 
+// ── Keyboard shortcuts ────────────────────────────────────────────
+
+document.addEventListener('keydown', e => {
+  const isEditable = e.target.matches('input, textarea, select, [contenteditable]');
+  const overlayOpen   = document.getElementById('overlay')?.classList.contains('open');
+  const loginVisible  = document.getElementById('loginOverlay')?.classList.contains('show');
+
+  // Do nothing while the login screen is showing
+  if (loginVisible) return;
+
+  // Ctrl+N / Cmd+N — open new customer modal (only when no overlay is open)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    if (!overlayOpen) {
+      e.preventDefault();
+      openModal(null);
+    }
+    return;
+  }
+
+  // Esc — close topmost open overlay / panel
+  if (e.key === 'Escape') {
+    if (overlayOpen)                                                                   { closeModal();        return; }
+    if (document.getElementById('rejectOverlay')?.classList.contains('open'))         { closeRejectModal();  return; }
+    if (document.getElementById('proceedOverlay')?.classList.contains('open'))        { closeProceedModal(); return; }
+    if (document.getElementById('parseOverlay')?.classList.contains('open'))          { closeParseModal();   return; }
+    if (document.getElementById('routeOverlay')?.classList.contains('open'))          { closeRouteModal();   return; }
+    if (document.getElementById('consultPanel')?.classList.contains('open'))          { closeConsultPanel(); return; }
+    if (document.getElementById('loanPanel')?.classList.contains('open'))             { closeLoanPanel();    return; }
+    if (document.getElementById('collectPopup')?.classList.contains('open'))          { closeCollectPopup(); return; }
+    return;
+  }
+
+  // Enter — save modal (not inside textarea or select)
+  if (e.key === 'Enter' && !e.shiftKey && overlayOpen) {
+    if (!isEditable || e.target.tagName === 'INPUT') {
+      e.preventDefault();
+      saveCustomer();
+    }
+  }
+});
+
 // ── External message (1차콜 integration) ────────────────────────
 
 window.addEventListener('message', e => {
