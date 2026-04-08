@@ -19,10 +19,9 @@ export const foodState = { kiosk: null, table: null, delivery: null };
 
 export function setBizType(type) {
   document.getElementById('f-biztype').value = type;
-  document.querySelectorAll('.btt-btn').forEach(b => {
-    b.classList.remove('active-sole', 'active-corp');
-    if (b.dataset.biz === type) b.classList.add(type === 'corp' ? 'active-corp' : 'active-sole');
-  });
+  document.querySelectorAll('.btt-btn').forEach(b => b.classList.remove('active-sole', 'active-corp'));
+  const btn = document.getElementById('btn-' + type);
+  if (btn) btn.classList.add(type === 'corp' ? 'active-corp' : 'active-sole');
 }
 
 // ── openModal ─────────────────────────────────────────────────────

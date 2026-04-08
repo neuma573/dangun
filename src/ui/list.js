@@ -37,7 +37,7 @@ export function setStepFilter(idx) {
 export function setFilter(f) {
   state.curFilter = f;
   document.querySelectorAll('.stat-pill').forEach(el =>
-    el.classList.toggle('act', el.dataset.filter === f));
+    el.classList.toggle('act', el.id === 'spill-' + f));
   renderList();
 }
 
@@ -62,13 +62,14 @@ export function renderList() {
   });
 
   // Stats
-  const total       = state.customers.length;
-  const activeAll   = state.customers.filter(c => !c.status);
-  const applyDone   = activeAll.filter(c => c.stepIdx >= APPLY_STEP_IDX && !isCollectedFn(c));
-  const collectDone = activeAll.filter(c => isCollectedFn(c));
-  const inProgress  = activeAll.filter(c => c.stepIdx < APPLY_STEP_IDX && !isCollectedFn(c));
-  const holdCount   = state.customers.filter(c => c.status === 'hold').length;
-  const cancelCount = state.customers.filter(c => c.status === 'cancel').length;
+  const total         = state.customers.length;
+  const activeAll     = state.customers.filter(c => !c.status);
+  const applyDone     = activeAll.filter(c => c.stepIdx >= APPLY_STEP_IDX && !isCollectedFn(c));
+  const collectDone   = activeAll.filter(c => isCollectedFn(c));
+  const inProgress    = activeAll.filter(c => c.stepIdx < APPLY_STEP_IDX && !isCollectedFn(c));
+  const collectWaiting= state.customers.filter(c => !c.status && c.fundDate && c.collected !== '완료' && !isCollectedFn(c));
+  const holdCount     = state.customers.filter(c => c.status === 'hold').length;
+  const cancelCount   = state.customers.filter(c => c.status === 'cancel').length;
   const rejectedCount = state.customers.filter(c => c.status === 'rejected').length;
 
   let totalFee = 0;
@@ -76,14 +77,15 @@ export function renderList() {
 
   // Update stat pills
   const setStatEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  setStatEl('stat-total',    total);
-  setStatEl('stat-progress', inProgress.length);
-  setStatEl('stat-applied',  applyDone.length);
-  setStatEl('stat-collected',collectDone.length);
-  setStatEl('stat-fund',     totalFee ? (totalFee/10000).toFixed(0)+'만원' : '0원');
-  setStatEl('stat-hold',     holdCount);
-  setStatEl('stat-cancel',   cancelCount);
-  setStatEl('stat-rejected', rejectedCount);
+  setStatEl('scnt-전체',    total);
+  setStatEl('scnt-진행중',  inProgress.length);
+  setStatEl('scnt-신청완료',applyDone.length);
+  setStatEl('scnt-수금완료',collectDone.length);
+  setStatEl('scnt-수금대기',collectWaiting.length);
+  setStatEl('scnt-fund',    totalFee ? (totalFee/10000).toFixed(0)+'만원' : '0원');
+  setStatEl('scnt-보류',    holdCount);
+  setStatEl('scnt-취소',    cancelCount);
+  setStatEl('scnt-부결',    rejectedCount);
 
   // Filter
   let list = state.customers.filter(c => {
@@ -93,6 +95,7 @@ export function renderList() {
     if      (f === '진행중')   ok = !c.status && c.stepIdx < APPLY_STEP_IDX && !col;
     else if (f === '신청완료') ok = !c.status && c.stepIdx >= APPLY_STEP_IDX && !col;
     else if (f === '수금완료') ok = col;
+    else if (f === '수금대기') ok = !c.status && !!c.fundDate && c.collected !== '완료' && !col;
     else if (f === '보류')     ok = c.status === 'hold';
     else if (f === '취소')     ok = c.status === 'cancel';
     else if (f === '부결')     ok = c.status === 'rejected';

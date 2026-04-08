@@ -49,6 +49,17 @@ import {
 } from './ui/proceed.js';
 import { openRejectModal, closeRejectModal, confirmReject } from './ui/reject.js';
 import { openParseModal, closeParseModal, runParse }       from './ui/parse.js';
+import {
+  openConsultPanel, closeConsultPanel,
+  csCalcProgress, csGenerate, csSendToCRM, csResetAll,
+  csPillClick, csGetPill, csUpdateSigungu, csUpdateRegion,
+  csToggleIndustry, csToggleDetail, csToggleLoan, csToggleBizRent, csToggleScore,
+  csScrollToField, csCopy,
+} from './ui/consult.js';
+import {
+  openLoanPanel, closeLoanPanel, lcCalculate,
+  lcSyncSel, lcSyncInp, lcSyncRateSel,
+} from './ui/loan.js';
 
 // ── Expose all functions to window (required for inline onclick= handlers) ──
 
@@ -97,8 +108,17 @@ Object.assign(window, {
   addCustomProduct, removeCustomProduct,
   // Parse
   openParseModal, closeParseModal, runParse,
-  // Toast (for consult/loan scripts)
+  // Toast
   showToast,
+  // Consult panel
+  openConsultPanel, closeConsultPanel,
+  csCalcProgress, csGenerate, csSendToCRM, csResetAll,
+  csPillClick, csGetPill, csUpdateSigungu, csUpdateRegion,
+  csToggleIndustry, csToggleDetail, csToggleLoan, csToggleBizRent, csToggleScore,
+  csScrollToField, csCopy,
+  // Loan calculator
+  openLoanPanel, closeLoanPanel, lcCalculate,
+  lcSyncSel, lcSyncInp, lcSyncRateSel,
 });
 
 // ── Static event listeners (overlay close on backdrop click) ─────
