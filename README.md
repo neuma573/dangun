@@ -47,46 +47,18 @@ npm run dev
 
 ## GitHub Pages 배포
 
-```bash
-# 1. 빌드 + 배포 (한 번에)
-npm run deploy
+`main` 브랜치에 push하면 GitHub Actions(`.github/workflows/deploy.yml`)가 자동으로 빌드 후 배포합니다.
 
-# 또는 수동으로:
-npm run build          # dist/ 폴더 생성
-npx gh-pages -d dist   # GitHub Pages에 푸시
-```
+배포 URL: `https://<your-github-username>.github.io/dangun/`
 
-배포 URL: `https://neuma573.github.io/dangun/`
+### 최초 설정 (1회)
 
-### GitHub Actions 자동 배포 설정 (선택)
+1. GitHub 저장소 **Settings → Secrets and variables → Actions** 에서 아래 두 Secret 추가:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+2. GitHub 저장소 **Settings → Pages → Source** 를 `Deploy from a branch` → `gh-pages` 로 설정
 
-`.github/workflows/deploy.yml` 생성:
-
-```yaml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [main]
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - run: npm ci
-      - run: npm run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      - uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-```
-
-GitHub 저장소 Settings → Secrets and variables → Actions 에서
-`VITE_SUPABASE_URL`과 `VITE_SUPABASE_ANON_KEY`를 Secret으로 추가.
+이후 `main` push 시마다 자동 배포됩니다. 수동 실행은 GitHub **Actions** 탭 → `Deploy to GitHub Pages` → `Run workflow`.
 
 ---
 
