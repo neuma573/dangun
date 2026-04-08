@@ -1574,6 +1574,43 @@ select.cp-input option { background: #0a2535; }
   border: 1px solid rgba(96,165,250,0.35);
 }
 .nav-btn-loan:hover { background: rgba(96,165,250,0.3); }
+.nav-btn-backup {
+  background: rgba(251,191,36,0.18); color: #fbbf24;
+  border: 1px solid rgba(251,191,36,0.35);
+}
+.nav-btn-backup:hover { background: rgba(251,191,36,0.30); color: #fde68a; }
+.bk-summary {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px;
+}
+.bk-stat {
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 12px; padding: 18px 20px; text-align: center;
+}
+.bk-stat-num { font-size: 32px; font-weight: 800; font-family: 'DM Mono',monospace; color: #34d399; }
+.bk-stat-lbl { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; font-weight: 600; }
+.bk-btn {
+  display: flex; align-items: center; gap: 16px;
+  width: 100%; padding: 20px 24px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 14px; cursor: pointer; transition: all .2s;
+  font-family: 'Noto Sans KR',sans-serif; color: #fff; margin-bottom: 14px;
+  text-align: left;
+}
+.bk-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.28); transform: translateY(-1px); }
+.bk-btn-ico { font-size: 28px; flex-shrink: 0; }
+.bk-btn-label { font-size: 16px; font-weight: 700; }
+.bk-btn-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 3px; }
+.bk-csv  { border-color: rgba(52,211,153,0.35);  }
+.bk-csv:hover  { border-color: rgba(52,211,153,0.6);  background: rgba(52,211,153,0.08);  }
+.bk-sql  { border-color: rgba(96,165,250,0.35);  }
+.bk-sql:hover  { border-color: rgba(96,165,250,0.6);  background: rgba(96,165,250,0.08);  }
+.bk-json { border-color: rgba(167,139,250,0.35); }
+.bk-json:hover { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.08); }
+.bk-warn {
+  background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 10px; padding: 14px 16px; font-size: 13px;
+  color: rgba(255,255,255,0.75); line-height: 1.6; margin-top: 8px;
+}
 </style>
 </head>
 <body>
@@ -1588,6 +1625,7 @@ select.cp-input option { background: #0a2535; }
   <button class="nav-btn nav-btn-loan" onclick="openLoanPanel()">📊 대출계산기</button>
   <button class="nav-btn nav-btn-consult" onclick="openConsultPanel()">💬 상담진행</button>
   <button class="nav-btn nav-btn-trash" id="trashNavBtn" onclick="openTrashView()" style="position:relative;">🗑 휴지통<span class="trash-count-badge" id="trashBadge" style="display:none;">0</span></button>
+  <button class="nav-btn nav-btn-backup" onclick="openBackupPanel()">💾 데이터 백업</button>
   <button class="nav-btn nav-btn-green" onclick="openModal()">＋ 신규 고객 등록</button>
 </nav>
 
@@ -5061,6 +5099,66 @@ updateTrashBadge();
   </div>
 </div>
 
+<!-- ════════════════════════════════════════
+     데이터 백업 패널
+════════════════════════════════════════ -->
+<div class="panel-overlay" id="backupPanel">
+  <div class="panel-inner" style="max-width:560px;">
+    <div class="panel-header">
+      <span style="font-size:20px;">💾</span>
+      <div class="panel-title">데이터 백업 <span style="font-size:12px;color:rgba(255,255,255,0.45);font-weight:400;margin-left:8px;">Supabase 이전 전 로컬 데이터 보존</span></div>
+      <button class="panel-close" onclick="closeBackupPanel()">✕ 닫기</button>
+    </div>
+    <div class="panel-body">
+
+      <!-- 현황 요약 -->
+      <div class="bk-summary">
+        <div class="bk-stat">
+          <div class="bk-stat-num" id="bk-cnt-customers">-</div>
+          <div class="bk-stat-lbl">저장된 고객</div>
+        </div>
+        <div class="bk-stat">
+          <div class="bk-stat-num" id="bk-cnt-trash" style="color:#f87171;">-</div>
+          <div class="bk-stat-lbl">휴지통</div>
+        </div>
+      </div>
+
+      <!-- CSV 다운로드 -->
+      <button class="bk-btn bk-csv" onclick="backupCSV()">
+        <div class="bk-btn-ico">📊</div>
+        <div>
+          <div class="bk-btn-label">CSV 다운로드</div>
+          <div class="bk-btn-desc">엑셀·스프레드시트에서 열 수 있는 형식. 모든 필드를 컬럼으로 저장.</div>
+        </div>
+      </button>
+
+      <!-- SQL 다운로드 -->
+      <button class="bk-btn bk-sql" onclick="backupSQL()">
+        <div class="bk-btn-ico">🐘</div>
+        <div>
+          <div class="bk-btn-label">SQL 다운로드 (PostgreSQL INSERT)</div>
+          <div class="bk-btn-desc">Supabase SQL Editor에 그대로 붙여넣어 복원 가능. JSONB 필드 포함.</div>
+        </div>
+      </button>
+
+      <!-- JSON 다운로드 -->
+      <button class="bk-btn bk-json" onclick="backupJSON()">
+        <div class="bk-btn-ico">📦</div>
+        <div>
+          <div class="bk-btn-label">JSON 다운로드 (원본 전체)</div>
+          <div class="bk-btn-desc">localStorage 원본 그대로 저장. 복원 시 다시 붙여넣기 가능.</div>
+        </div>
+      </button>
+
+      <!-- 경고 -->
+      <div class="bk-warn">
+        ⚠ Supabase 이전 완료 후에는 브라우저 로컬 데이터가 삭제됩니다. 이전 전 반드시 백업을 받아두세요.
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
 /* ════════════════════════════════════════
    상담시스템 JS
@@ -5678,6 +5776,7 @@ function closeConsultPanel() {
 window.addEventListener('resize', ()=>{
   if(document.getElementById('consultPanel').classList.contains('open')) csCalcProgress();
 });
+x
 </script>
 
 </body>

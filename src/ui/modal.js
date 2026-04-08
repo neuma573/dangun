@@ -15,6 +15,50 @@ import { showToast }       from './toast.js';
 // Food state lives here so modal.js and food.js can share it
 export const foodState = { kiosk: null, table: null, delivery: null };
 
+// ── Change detection ──────────────────────────────────────────────
+//
+// Single source of truth: _snapshotModal() lists every user-editable
+// field in the modal. Both capture and comparison call it, so a field
+// can only be omitted by removing it from this one function.
+
+function _snapshotModal() {
+  const s = {};
+
+  // All FIDS dom fields
+  FIDS.forEach(fid => {
+    const el = document.getElementById(fid);
+    s[fid] = el ? el.value : '';
+  });
+
+  // Hidden biztype field (set by setBizType, not in FIDS)
+  const bt = document.getElementById('f-biztype');
+  s['f-biztype'] = bt ? bt.value : 'sole';
+
+  // Delivery apps input (visible only when food section is open, not in FIDS)
+  const da = document.getElementById('f-delivery-apps');
+  s['f-delivery-apps'] = da ? da.value : '';
+
+  // foodState — JS-managed toggles, not reflected in any <input>
+  s['_food_kiosk']    = foodState.kiosk;
+  s['_food_table']    = foodState.table;
+  s['_food_delivery'] = foodState.delivery;
+
+  return s;
+}
+
+let _origSnapshot = null;
+
+function _captureOriginals() {
+  _origSnapshot = _snapshotModal();
+}
+
+function _hasChanges() {
+  if (!_origSnapshot) return false;
+  const current = _snapshotModal();
+  // All values are primitives (string | boolean | null) so !== is sufficient
+  return Object.keys(current).some(k => current[k] !== _origSnapshot[k]);
+}
+
 // ── setBizType ────────────────────────────────────────────────────
 
 export function setBizType(type) {
@@ -83,17 +127,13 @@ export function openModal(id) {
     checkFoodIndustry();
     setBizType('sole');
   }
+  _captureOriginals();
 }
 
 // ── closeModal ────────────────────────────────────────────────────
 
 export function closeModal() {
-  const hasInput = FIDS.some(fid => {
-    const el = document.getElementById(fid);
-    if (!el) return false;
-    return el.value && el.value !== '0' && el.value !== 'sole';
-  });
-  if (hasInput) {
+  if (_hasChanges()) {
     document.getElementById('closeConfirm').classList.add('open');
   } else {
     forceCloseModal();
@@ -104,6 +144,7 @@ export function forceCloseModal() {
   document.getElementById('closeConfirm').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
   state.editId = null;
+  _origSnapshot = null;
 }
 
 export function cancelClose() {

@@ -139,22 +139,25 @@ GitHub Actions cron으로 7일마다 ping을 보내는 워크플로를 추가하
 
 ---
 
-## 알려진 버그 수정 사항 (이번 리팩토링에서 해결)
+## 해결된 버그 및 개선 사항
 
 - **주민번호 연도 파싱**: 하드코딩된 `>= 25` 기준 → 현재 연도 2자리 기준으로 변경
 - **CSV 내보내기**: 쉼표/줄바꿈 포함 필드가 CSV를 깨뜨리는 문제 수정 (`csvField()` 적용)
-- **`eval()` 제거**: `data-csonchange` 속성의 `eval` → 명시적 함수 호출로 교체 (consult.js 참고)
+- **`eval()` 제거**: `data-csonchange` 속성의 `eval` → 명시적 함수 호출로 교체
 - **localStorage 용량 한도 에러**: Supabase 이전으로 근본적 해결
+- **내비게이션 버튼 오작동**: 상담진행·대출계산기 패널 함수가 모듈로 미이전된 문제 수정
+- **사업자 유형 토글 불가**: `setBizType`이 존재하지 않는 `data-biz` 속성을 참조하던 문제 수정
+- **통계 필터 미반영**: stat pill ID 불일치(`stat-total` 등 → `scnt-전체` 등) 수정
+- **Supabase Auth**: 이메일/비밀번호 로그인 + RLS 강화 (anon 접근 차단)
+- **모달 닫기 확인**: 기존값과 실제로 다를 때만 팝업 표시
+- **키보드 단축키**: `Ctrl+N` 신규등록, `Esc` 닫기, `Enter` 저장
+- **Supabase 비활성 방지**: GitHub Actions cron으로 3일마다 자동 ping
 
 ---
 
 ## TODO (다음 단계)
 
-- [ ] Supabase Auth 추가 (이메일/비밀번호 로그인) — 현재는 anon key로 전체 접근 가능
 - [ ] 메모/상담이력 전문 검색 지원 (현재는 이름/전화/업종만 검색)
-- [ ] 키보드 단축키 (Ctrl+N 신규등록, Esc 모달닫기, Enter 저장)
 - [ ] 실시간 동기화 (Supabase Realtime 구독 — 여러 기기 동시 사용)
-- [ ] Supabase 비활성 방지 cron (GitHub Actions)
 - [ ] 전체 DB JSON 내보내기/가져오기 버튼 (백업용)
 - [ ] 스텝 날짜 삭제 시 soft-delete (실수 복구 가능하도록)
-- [ ] 모달 닫기 확인 팝업 — 기존값과 비교해 실제 변경 시에만 표시
