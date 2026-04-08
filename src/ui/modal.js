@@ -16,27 +16,47 @@ import { showToast }       from './toast.js';
 export const foodState = { kiosk: null, table: null, delivery: null };
 
 // ── Change detection ──────────────────────────────────────────────
+//
+// Single source of truth: _snapshotModal() lists every user-editable
+// field in the modal. Both capture and comparison call it, so a field
+// can only be omitted by removing it from this one function.
 
-let _origValues = {};
+function _snapshotModal() {
+  const s = {};
 
-function _captureOriginals() {
-  _origValues = {};
+  // All FIDS dom fields
   FIDS.forEach(fid => {
     const el = document.getElementById(fid);
-    _origValues[fid] = el ? el.value : '';
+    s[fid] = el ? el.value : '';
   });
-  // f-biztype is a hidden field not in FIDS
+
+  // Hidden biztype field (set by setBizType, not in FIDS)
   const bt = document.getElementById('f-biztype');
-  _origValues['f-biztype'] = bt ? bt.value : 'sole';
+  s['f-biztype'] = bt ? bt.value : 'sole';
+
+  // Delivery apps input (visible only when food section is open, not in FIDS)
+  const da = document.getElementById('f-delivery-apps');
+  s['f-delivery-apps'] = da ? da.value : '';
+
+  // foodState — JS-managed toggles, not reflected in any <input>
+  s['_food_kiosk']    = foodState.kiosk;
+  s['_food_table']    = foodState.table;
+  s['_food_delivery'] = foodState.delivery;
+
+  return s;
+}
+
+let _origSnapshot = null;
+
+function _captureOriginals() {
+  _origSnapshot = _snapshotModal();
 }
 
 function _hasChanges() {
-  const bt = document.getElementById('f-biztype');
-  if (bt && bt.value !== (_origValues['f-biztype'] ?? 'sole')) return true;
-  return FIDS.some(fid => {
-    const el = document.getElementById(fid);
-    return el && el.value !== (_origValues[fid] ?? '');
-  });
+  if (!_origSnapshot) return false;
+  const current = _snapshotModal();
+  // All values are primitives (string | boolean | null) so !== is sufficient
+  return Object.keys(current).some(k => current[k] !== _origSnapshot[k]);
 }
 
 // ── setBizType ────────────────────────────────────────────────────
@@ -124,7 +144,7 @@ export function forceCloseModal() {
   document.getElementById('closeConfirm').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
   state.editId = null;
-  _origValues = {};
+  _origSnapshot = null;
 }
 
 export function cancelClose() {
