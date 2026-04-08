@@ -6,6 +6,7 @@
 import { state }           from './state.js';
 import { fetchCustomers }  from './db/customers.js';
 import { migrateFromLocalStorage } from './db/migrate.js';
+import { signIn, signOut, getSession } from './auth.js';
 import { updatePlanPreview, updateActualPlan } from './utils/calc.js';
 import { genderFromRrn }   from './utils/gender.js';
 
@@ -119,6 +120,8 @@ Object.assign(window, {
   // Loan calculator
   openLoanPanel, closeLoanPanel, lcCalculate,
   lcSyncSel, lcSyncInp, lcSyncRateSel,
+  // Auth
+  submitLogin, handleLogout,
 });
 
 // ── Static event listeners (overlay close on backdrop click) ─────
@@ -161,9 +164,48 @@ window.addEventListener('message', e => {
   setBizType('sole');
 });
 
+// ── Auth helpers ──────────────────────────────────────────────────
+
+function showLoginScreen() {
+  document.getElementById('loginOverlay')?.classList.add('show');
+}
+
+function hideLoginScreen() {
+  document.getElementById('loginOverlay')?.classList.remove('show');
+}
+
+export async function submitLogin() {
+  const email    = document.getElementById('login-email')?.value.trim() ?? '';
+  const password = document.getElementById('login-password')?.value ?? '';
+  const errEl    = document.getElementById('login-error');
+  const btn      = document.getElementById('login-btn');
+
+  if (!email || !password) {
+    if (errEl) errEl.textContent = '이메일과 비밀번호를 입력해주세요.';
+    return;
+  }
+
+  if (btn)   { btn.disabled = true; btn.textContent = '로그인 중...'; }
+  if (errEl) errEl.textContent = '';
+
+  try {
+    await signIn(email, password);
+    hideLoginScreen();
+    await bootApp();
+  } catch (err) {
+    if (errEl) errEl.textContent = err.message || '로그인에 실패했습니다.';
+    if (btn)   { btn.disabled = false; btn.textContent = '로그인'; }
+  }
+}
+
+export async function handleLogout() {
+  await signOut();
+  location.reload();
+}
+
 // ── Boot ──────────────────────────────────────────────────────────
 
-async function boot() {
+async function bootApp() {
   // 1. Migrate localStorage data on first run
   await migrateFromLocalStorage();
 
@@ -181,4 +223,13 @@ async function boot() {
   updateTrashBadge();
 }
 
-boot();
+async function startApp() {
+  const session = await getSession();
+  if (!session) {
+    showLoginScreen();
+    return;
+  }
+  await bootApp();
+}
+
+startApp();
