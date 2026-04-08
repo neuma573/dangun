@@ -18,7 +18,9 @@
 1. [Supabase](https://supabase.com) 계정 생성 (무료)
 2. 새 프로젝트 생성
 3. SQL Editor에서 `supabase/migrations/001_initial_schema.sql` 전체 실행
-4. Project Settings → API 에서 Project URL과 anon key 복사
+4. SQL Editor에서 `supabase/migrations/002_auth_rls.sql` 실행 (anon 정책 제거 → 인증 전용)
+5. Authentication → Users → **Add user** 에서 관리자 계정 생성 (이메일 + 비밀번호)
+6. Project Settings → API 에서 Project URL과 anon key 복사
 
 ---
 
@@ -26,7 +28,7 @@
 
 ```bash
 # 1. 클론
-git clone https://github.com/neuma573/dangun.git
+git clone https://github.com/<your-github-username>/dangun.git
 cd dangun
 
 # 2. 의존성 설치
@@ -56,7 +58,7 @@ npm run build          # dist/ 폴더 생성
 npx gh-pages -d dist   # GitHub Pages에 푸시
 ```
 
-배포 URL: `https://neuma573.github.io/dangun/`
+배포 URL: `https://<your-github-username>.github.io/dangun/`
 
 ### GitHub Actions 자동 배포 설정 (선택)
 
